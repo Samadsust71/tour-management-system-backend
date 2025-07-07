@@ -1,7 +1,7 @@
+/* eslint-disable no-console */
 import { Server } from "http";
 import mongoose from "mongoose";
 import app from "./app";
-
 let server: Server;
 const port = 5000;
 const startServer = async () => {
