@@ -2,12 +2,13 @@
 import { Server } from "http";
 import mongoose from "mongoose";
 import app from "./app";
+import { envVars } from "./app/config/env";
 let server: Server;
-const port = 5000;
+const port = envVars.PORT;
 const startServer = async () => {
   try {
     await mongoose.connect(
-      "mongodb+srv://todouser:x7qUXaxOgtrhwWPG@cluster0.qo68l.mongodb.net/tour-management-system-db?retryWrites=true&w=majority&appName=Cluster0"
+      envVars.DB_URL
     );
     console.log("connected to DB");
     server = app.listen(port, () => {
