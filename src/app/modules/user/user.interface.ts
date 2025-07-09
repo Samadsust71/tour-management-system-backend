@@ -1,10 +1,10 @@
 import { Types } from "mongoose";
 
-export interface IRole {
-  SUPER_ADMIN: "SUPER_ADMIN";
-  ADMIN: "ADMIN";
-  USER: "USER";
-  GUIDE: "GUIDE";
+export enum Role {
+  SUPER_ADMIN= "SUPER_ADMIN",
+  ADMIN= "ADMIN",
+  USER= "USER",
+  GUIDE= "GUIDE"
 }
 export enum IsActive {
   ACTIVE = "ACTIVE",
@@ -24,10 +24,10 @@ export interface IUser {
   phone?: string;
   picture?: string;
   address?: string;
-  isDeleted?: string;
+  isDeleted?: boolean;
   isActive?: IsActive;
-  isVerified: string;
-  role: IRole;
+  isVerified: boolean;
+  role: Role;
   auths: IAuthProvider[];
   bookings?: Types.ObjectId[];
   guides?: Types.ObjectId[];
