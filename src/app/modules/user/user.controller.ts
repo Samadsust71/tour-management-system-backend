@@ -17,6 +17,24 @@ const createUser = catchAsync(
     });
   }
 );
+
+const updateUser = catchAsync(
+  async(req: Request, res: Response, next: NextFunction)=>{
+    const userId = req.params.id;
+    const decodedToken = req.user; 
+    const payload = req.body;
+    const updatedUser = await userServices.updateUser(userId,payload,decodedToken)
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success:true,
+      message: "User updated successfully",
+      data: updatedUser,
+    });
+  }
+  
+)
+
 const getAllUsers = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const result = await userServices.getAllUsers();
@@ -30,7 +48,8 @@ const getAllUsers = catchAsync(
     });
   }
 );
-export const UserController = {
+export const userController = {
   createUser,
   getAllUsers,
+  updateUser
 };
