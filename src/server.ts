@@ -3,13 +3,12 @@ import { Server } from "http";
 import mongoose from "mongoose";
 import app from "./app";
 import { envVars } from "./app/config/env";
+import { seedSuperAdmin } from "./app/utils/seedSuperAdmin";
 let server: Server;
 const port = envVars.PORT;
 const startServer = async () => {
   try {
-    await mongoose.connect(
-      envVars.DB_URL
-    );
+    await mongoose.connect(envVars.DB_URL);
     console.log("connected to DB");
     server = app.listen(port, () => {
       console.log(`Server is listening on port ${port}`);
@@ -19,7 +18,10 @@ const startServer = async () => {
   }
 };
 
-startServer();
+(async () => {
+  await startServer();
+  await seedSuperAdmin();
+})();
 
 // for catching Unhandled promise error
 process.on("unhandledRejection", (err) => {
@@ -33,25 +35,25 @@ process.on("unhandledRejection", (err) => {
 });
 
 //for catching uncaught exception error
-process.on("uncaughtException", (err)=>{
-  console.log("Uncaught exception caught... Server shutting down", err)
+process.on("uncaughtException", (err) => {
+  console.log("Uncaught exception caught... Server shutting down", err);
   if (server) {
-    server.close(()=>{
-        process.exit(1)
-    })
+    server.close(() => {
+      process.exit(1);
+    });
   }
-  process.exit(1)
-})
+  process.exit(1);
+});
 
 // for catching signal termination
-process.on("SIGTERM", ()=>{
-    console.log("SIGTERM signal received... Server shutting down..");
+process.on("SIGTERM", () => {
+  console.log("SIGTERM signal received... Server shutting down..");
 
-    if (server) {
-        server.close(() => {
-            process.exit(1)
-        });
-    }
+  if (server) {
+    server.close(() => {
+      process.exit(1);
+    });
+  }
 
-    process.exit(1)
-})
+  process.exit(1);
+});

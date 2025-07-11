@@ -22,6 +22,7 @@ export const globalErrorHandler = (error:any, req:Request, res:Response, next:Ne
         statusCode,
         success: false,
         message,
+        error,
         stack: envVars.NODE_ENV === "development" ? error.stack : undefined
     });
 }
