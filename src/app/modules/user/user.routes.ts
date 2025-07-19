@@ -9,7 +9,9 @@ import { Role } from "./user.interface";
 
 const router = Router()
 
-router.post("/register",validateRequest(createUserZodSchema), userController.createUser)
+router.post("/register",
+    validateRequest(createUserZodSchema)
+    , userController.createUser)
 router.get("/",checkAuth(Role.ADMIN,Role.SUPER_ADMIN), userController.getAllUsers)
 router.patch("/:id", validateRequest(updateUserZodSchema), checkAuth(...Object.values(Role)), userController.updateUser)
 

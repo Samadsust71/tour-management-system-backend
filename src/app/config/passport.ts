@@ -8,6 +8,51 @@ import {
 import { envVars } from "./env";
 import { User } from "../modules/user/user.model";
 import { Role } from "../modules/user/user.interface";
+import { Strategy as LocalStrategy } from "passport-local";
+import bcrypt from "bcryptjs";
+
+passport.use(
+  new LocalStrategy(
+    {
+      usernameField: "email",
+      passwordField: "password",
+    },
+    async (email: string, password: string, done) => {
+      try {
+        const isUserExist = await User.findOne({ email });
+
+        if (!isUserExist) {
+          return done("User does not exist");
+        }
+
+        const isGoogleAuthenticated = isUserExist.auths.some(
+          (auth) => auth.provider === "google"
+        );
+
+        if (isGoogleAuthenticated && !isUserExist.password) {
+          return done(
+            "You have authenticated through Google. So if you want to login with credentials, then at first login with google and set a password for your Gmail and then you can login with email and password."
+          );
+        }
+
+        const isPasswordMatch = await bcrypt.compare(
+          password,
+          isUserExist.password as string
+        );
+
+        if (!isPasswordMatch) {
+          return done("Password is incorrect");
+        }
+
+        return done(null, isUserExist);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.log("Error during local authentication:", error);
+        done(error);
+      }
+    }
+  )
+);
 
 passport.use(
   new GoogleStrategy(
@@ -23,7 +68,7 @@ passport.use(
       done: VerifyCallback
     ) => {
       try {
-        const email =  profile.emails?.[0]?.value;
+        const email = profile.emails?.[0]?.value;
         if (!email) {
           return done(null, false, {
             message: "Email not found in Google profile",
@@ -58,17 +103,17 @@ passport.use(
   )
 );
 
-passport.serializeUser((user: any, done:any) => {
+passport.serializeUser((user: any, done: any) => {
   done(null, user._id);
 });
 
-passport.deserializeUser(async (id: string, done:any) => {
-    try {
-        const user = await User.findById(id)
-        done(null, user);
-    } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log("Error during user deserialization:", error);
-        done(error)
-    }
-})
+passport.deserializeUser(async (id: string, done: any) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log("Error during user deserialization:", error);
+    done(error);
+  }
+});

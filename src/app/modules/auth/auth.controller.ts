@@ -13,16 +13,33 @@ import passport from "passport";
 
 const credentialsLogin = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const loginInfo = await authServices.credentialsLogin(req.body);
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    passport.authenticate("local", async (error: any, user: any, info: any) => {
+      if (error) {
+        return next(new AppError(httpStatus.BAD_REQUEST, error));
+      }
 
-    setAuthCookie(res, loginInfo);
+      if (!user) {
+        return next(new AppError(httpStatus.BAD_REQUEST, info.message));
+      }
 
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: "User logged in successfully",
-      data: loginInfo,
-    });
+      const userTokens = createUserTokens(user);
+
+      const { password: pass, ...rest } = user.toObject();
+      setAuthCookie(res, userTokens);
+
+      sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "User logged in successfully",
+        data: {
+          accessToken: userTokens.accessToken,
+          refreshToken: userTokens.refreshToken,
+          user: rest,
+        },
+      });
+    })(req, res, next);
   }
 );
 
@@ -52,15 +69,15 @@ const getNewAccessToken = catchAsync(
 
 const logout = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    res.clearCookie("accessToken",{
-      httpOnly:true,
-      secure:false,
-      sameSite:"lax"
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
     });
-    res.clearCookie("refreshToken",{
-      httpOnly:true,
-      secure:false,
-      sameSite:"lax"
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
     });
 
     sendResponse(res, {
@@ -74,12 +91,15 @@ const logout = catchAsync(
 
 const resetPassword = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-
     const newPassword = req.body.newPassword;
     const oldPassword = req.body.oldPassword;
-    const decodedToken = req.user
-    
-    await authServices.resetPassword(oldPassword, newPassword,decodedToken as JwtPayload);
+    const decodedToken = req.user;
+
+    await authServices.resetPassword(
+      oldPassword,
+      newPassword,
+      decodedToken as JwtPayload
+    );
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -90,35 +110,35 @@ const resetPassword = catchAsync(
   }
 );
 
-const googleAuth = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-
-    const redirect = req.query.redirect as string || "/";
-    passport.authenticate("google", { scope: ["profile", "email"],state:redirect })(req,res,next);
-  })
+const googleAuth = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const redirect = (req.query.redirect as string) || "/";
+    passport.authenticate("google", {
+      scope: ["profile", "email"],
+      state: redirect,
+    })(req, res, next);
+  }
+);
 
 const googleAuthCallback = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    let redirectTo = req.query.state ? (req.query.state as string) : "";
 
-   const user = req.user
-   let redirectTo = req.query.state ? req.query.state as string : ""
+    if (redirectTo.startsWith("/")) {
+      redirectTo = redirectTo.slice(1);
+    }
 
-   if(redirectTo.startsWith("/")){
-      redirectTo = redirectTo.slice(1)
-   }
-
-   
     if (!user) {
       return next(new AppError(httpStatus.NOT_FOUND, "User not found"));
     }
     // Create user tokens
-   const tokenInfo = createUserTokens(user)
-   setAuthCookie(res, tokenInfo);
-  
-   res.redirect(`${envVars.FRONTEND_URL}/${redirectTo}`)
+    const tokenInfo = createUserTokens(user);
+    setAuthCookie(res, tokenInfo);
+
+    res.redirect(`${envVars.FRONTEND_URL}/${redirectTo}`);
   }
 );
-
-
 
 export const authControllers = {
   credentialsLogin,
@@ -126,5 +146,5 @@ export const authControllers = {
   logout,
   resetPassword,
   googleAuth,
-  googleAuthCallback
+  googleAuthCallback,
 };
