@@ -1,3 +1,4 @@
+import { tourSearchableFields } from "./tour.constant";
 import { ITour, ITourType } from "./tour.interface";
 import { Tour, TourType } from "./tour.model";
 
@@ -9,23 +10,21 @@ const createTour = async (payload: ITour) => {
     throw new Error("A tour with this title already exists.");
   }
 
-  const baseSlug = payload.title.toLowerCase().split(" ").join("-");
-  let slug = `${baseSlug}`;
-
-  let counter = 0;
-  while (await Tour.exists({ slug })) {
-    slug = `${slug}-${counter++}`;
-  }
-
-  payload.slug = slug;
-
   const tour = await Tour.create(payload);
 
   return tour;
 };
 
-const getAllTours = async () => {
-  const tours = await Tour.find({});
+const getAllTours = async (query: Record<string, string>) => {
+  const filter = query;
+  const searchTerm = query.searchTerm || "";
+  const searchQuery = {
+    $or: tourSearchableFields.map((field) => ({
+      [field]: { $regex: searchTerm, $options: "i" },
+    })),
+  };
+  delete filter?.searchTerm; 
+  const tours = await Tour.find(filter).find(searchQuery)
   const totalTours = await Tour.countDocuments();
   return {
     data: tours,
@@ -41,18 +40,6 @@ const updateTour = async (id: string, payload: Partial<ITour>) => {
     throw new Error("Tour not found.");
   }
 
-  if (payload.title) {
-    const baseSlug = payload.title.toLowerCase().split(" ").join("-");
-    let slug = `${baseSlug}`;
-
-    let counter = 0;
-    while (await Tour.exists({ slug })) {
-      slug = `${slug}-${counter++}`;
-    }
-
-    payload.slug = slug;
-  }
- 
   const updatedTour = await Tour.findByIdAndUpdate(id, payload, { new: true });
 
   return updatedTour;
@@ -65,7 +52,6 @@ const deleteTour = async (id: string) => {
 // --------------------------Tour Type Services-------------------------------
 
 const createTourType = async (payload: ITourType) => {
-
   const existingTourType = await TourType.findOne({ name: payload.name });
 
   if (existingTourType) {
@@ -84,7 +70,10 @@ const updateTourType = async (id: string, payload: ITourType) => {
   if (!existingTourType) {
     throw new Error("Tour type not found.");
   }
-  const updatedTourType = await TourType.findByIdAndUpdate(id, payload,{new:true,runValidators: true});
+  const updatedTourType = await TourType.findByIdAndUpdate(id, payload, {
+    new: true,
+    runValidators: true,
+  });
   if (!updatedTourType) {
     throw new Error("Update failed.");
   }
