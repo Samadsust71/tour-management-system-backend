@@ -14,6 +14,8 @@ interface EnvConfig {
   REFRESH_EXPIRES_IN:string;
   SUPER_ADMIN_EMAIL:string;
   SUPER_ADMIN_PASSWORD:string;
+  SUPER_ADMIN_PHONE:string;
+  SUPER_ADMIN_ADDRESS:string;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
   GOOGLE_CALLBACK_URL:string;
@@ -35,6 +37,8 @@ const requiredEnvVariables: (keyof EnvConfig)[] = [
   "REFRESH_EXPIRES_IN",
   "SUPER_ADMIN_EMAIL",
   "SUPER_ADMIN_PASSWORD",
+  "SUPER_ADMIN_PHONE",
+  "SUPER_ADMIN_ADDRESS",
   "GOOGLE_CLIENT_ID",
   "GOOGLE_CLIENT_SECRET",
   "GOOGLE_CALLBACK_URL",
