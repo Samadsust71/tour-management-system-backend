@@ -32,6 +32,10 @@ interface EnvConfig {
   SSL_SUCCESS_FRONTEND_URL:string;
   SSL_FAIL_FRONTEND_URL:string;
   SSL_CANCEL_FRONTEND_URL:string;
+  // CLOUDINARY
+  CLOUDINARY_CLOUD_NAME: string;
+  CLOUDINARY_API_KEY: string;
+  CLOUDINARY_API_SECRET: string;
 }
 
 const isValidNodeEnv = (nodeEnv: string): nodeEnv is NodeEnvironment =>
@@ -66,6 +70,10 @@ const requiredEnvVariables: (keyof EnvConfig)[] = [
   "SSL_SUCCESS_FRONTEND_URL",
   "SSL_FAIL_FRONTEND_URL",
   "SSL_CANCEL_FRONTEND_URL",
+  // CLOUDINARY
+  "CLOUDINARY_CLOUD_NAME",
+  "CLOUDINARY_API_KEY",
+  "CLOUDINARY_API_SECRET",
 ];
 
 const loadEnvVariables = (): EnvConfig => {
