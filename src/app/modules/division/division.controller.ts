@@ -3,9 +3,14 @@ import { Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { divisionService } from "./division.service";
+import { IDivision } from "./division.interface";
 
 const createDivision = catchAsync(async (req: Request, res: Response) => {
-    const result = await divisionService.createDivision(req.body);
+     const payload: IDivision = {
+        ...req.body,
+        thumbnail: req.file?.path
+    }
+    const result = await divisionService.createDivision(payload);
     sendResponse(res, {
         statusCode: 201,
         success: true,
