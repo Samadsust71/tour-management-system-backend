@@ -7,7 +7,7 @@ import {
 } from "passport-google-oauth20";
 import { envVars } from "./env";
 import { User } from "../modules/user/user.model";
-import { Role } from "../modules/user/user.interface";
+import { IsActive, Role } from "../modules/user/user.interface";
 import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcryptjs";
 
@@ -23,6 +23,20 @@ passport.use(
 
         if (!isUserExist) {
           return done("User does not exist");
+        }
+        if (!isUserExist.isVerified) {
+          return done("User is not verified");
+        }
+
+        if (
+          isUserExist.isActive === IsActive.BLOCKED ||
+          isUserExist.isActive === IsActive.INACTIVE
+        ) {
+          return done(`User is ${isUserExist.isActive}`);
+        }
+        if (isUserExist.isDeleted) {
+         
+          return done("User is deleted");
         }
 
         const isGoogleAuthenticated = isUserExist.auths.some(
@@ -48,7 +62,7 @@ passport.use(
       } catch (error) {
         // eslint-disable-next-line no-console
         console.log("Error during local authentication:", error);
-        done(error);
+        return done(error);
       }
     }
   )
@@ -77,6 +91,22 @@ passport.use(
 
         let user = await User.findOne({ email });
 
+        if (user && !user.isVerified) {
+          return done(null, false, { message: "User is not verified" });
+        }
+
+        if (
+          user &&
+          (user.isActive === IsActive.BLOCKED ||
+            user.isActive === IsActive.INACTIVE)
+        ) {
+          return done(`User is ${user.isActive}`);
+        }
+
+        if (user && user.isDeleted) {
+          return done(null, false, { message: "User is deleted" });
+        }
+
         if (!user) {
           user = await User.create({
             email,
@@ -97,23 +127,23 @@ passport.use(
       } catch (error) {
         // eslint-disable-next-line no-console
         console.log("Error during Google authentication:", error);
-        done(error);
+        return done(error);
       }
     }
   )
 );
 
 passport.serializeUser((user: any, done: any) => {
-  done(null, user._id);
+  return done(null, user._id);
 });
 
 passport.deserializeUser(async (id: string, done: any) => {
   try {
     const user = await User.findById(id);
-    done(null, user);
+    return done(null, user);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.log("Error during user deserialization:", error);
-    done(error);
+    return done(error);
   }
 });

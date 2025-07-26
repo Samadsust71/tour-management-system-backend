@@ -91,11 +91,45 @@ const logout = catchAsync(
 
 const resetPassword = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+   
+     const decodedToken = req.user
+
+    await authServices.resetPassword(req.body, decodedToken as JwtPayload);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Password Changed Successfully",
+        data: null,
+    })
+  }
+);
+
+const setPassword = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+   
+    const decodedToken = req.user as JwtPayload;
+    const {password} = req.body
+
+    await authServices.setPassword(decodedToken.userId,password)
+      
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Password set successfully",
+      data: null,
+    });
+  }
+);
+
+const changePassword = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
     const newPassword = req.body.newPassword;
     const oldPassword = req.body.oldPassword;
     const decodedToken = req.user;
 
-    await authServices.resetPassword(
+    await authServices.changePassword(
       oldPassword,
       newPassword,
       decodedToken as JwtPayload
@@ -110,41 +144,50 @@ const resetPassword = catchAsync(
   }
 );
 
-const googleAuth = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const redirect = (req.query.redirect as string) || "/";
-    passport.authenticate("google", {
-      scope: ["profile", "email"],
-      state: redirect,
-    })(req, res, next);
-  }
-);
+const forgotPassword = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
 
-const googleAuthCallback = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const user = req.user;
-    let redirectTo = req.query.state ? (req.query.state as string) : "";
+
+    const { email } = req.body;
+
+    await authServices.forgotPassword(email);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Email Sent Successfully",
+        data: null,
+    })
+})
+
+const googleCallbackController = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+
+    let redirectTo = req.query.state ? req.query.state as string : ""
 
     if (redirectTo.startsWith("/")) {
-      redirectTo = redirectTo.slice(1);
+        redirectTo = redirectTo.slice(1)
     }
+
+    const user = req.user;
 
     if (!user) {
-      return next(new AppError(httpStatus.NOT_FOUND, "User not found"));
+        throw new AppError(httpStatus.NOT_FOUND, "User Not Found")
     }
-    // Create user tokens
-    const tokenInfo = createUserTokens(user);
-    setAuthCookie(res, tokenInfo);
 
-    res.redirect(`${envVars.FRONTEND_URL}/${redirectTo}`);
-  }
-);
+    const tokenInfo = createUserTokens(user)
+
+    setAuthCookie(res, tokenInfo)
+
+    res.redirect(`${envVars.FRONTEND_URL}/${redirectTo}`)
+})
+
 
 export const authControllers = {
   credentialsLogin,
   getNewAccessToken,
   logout,
   resetPassword,
-  googleAuth,
-  googleAuthCallback,
+  setPassword,
+  changePassword,
+  forgotPassword,
+  googleCallbackController
 };
