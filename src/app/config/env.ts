@@ -36,6 +36,13 @@ interface EnvConfig {
   CLOUDINARY_CLOUD_NAME: string;
   CLOUDINARY_API_KEY: string;
   CLOUDINARY_API_SECRET: string;
+
+  // SMTP
+  SMTP_HOST: string;
+  SMTP_PORT: string;
+  SMTP_USER: string;
+  SMTP_PASS: string;
+  SMTP_FROM: string;
 }
 
 const isValidNodeEnv = (nodeEnv: string): nodeEnv is NodeEnvironment =>
@@ -74,6 +81,12 @@ const requiredEnvVariables: (keyof EnvConfig)[] = [
   "CLOUDINARY_CLOUD_NAME",
   "CLOUDINARY_API_KEY",
   "CLOUDINARY_API_SECRET",
+  // SMTP
+  "SMTP_HOST",
+  "SMTP_PORT",
+  "SMTP_USER",
+  "SMTP_PASS",
+  "SMTP_FROM",
 ];
 
 const loadEnvVariables = (): EnvConfig => {
