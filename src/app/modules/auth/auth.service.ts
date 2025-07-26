@@ -6,6 +6,7 @@ import { User } from "../user/user.model";
 import { createNewAccessTokenWithRefreshToken } from "../../utils/userTokens";
 import { JwtPayload } from "jsonwebtoken";
 import { envVars } from "../../config/env";
+import { IAuthProvider } from "../user/user.interface";
 
 
 
@@ -17,7 +18,32 @@ const getNewAccessToken = async (refreshToken:string) => {
     accessToken: newAccessToken
     }
 };
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const resetPassword = async (oldPassword:string, newPassword:string, decodedToken:JwtPayload) => {
+  return {}
+};
+
+
+const setPassword = async (userId:string, plainPassword:string) => {
+   const user = await User.findById(userId)
+   if (!user) {
+      throw new AppError(httpStatus.NOT_FOUND, "User not found");
+   }
+   
+   if(user.password && user.auths.some(auth=> auth.provider === "google")){
+      throw new AppError(httpStatus.BAD_REQUEST, "You have already set a password for your account. Please use the 'Change Password' option.");
+   }
+
+   const hashedPassword = await bcrypt.hash(plainPassword, Number(envVars.SALT_VALUE));
+   const credentialProvider: IAuthProvider = {provider:"credentials", providerId:user.email}
+   const auths:IAuthProvider[]= [...user.auths,credentialProvider]
+   user.password = hashedPassword;
+   user.auths = auths;
+   await user.save();
+};
+
+const changePassword = async (oldPassword:string, newPassword:string, decodedToken:JwtPayload) => {
    const user = await User.findById(decodedToken.userId);
    const isPasswordMatch = await bcrypt.compare(oldPassword, user!.password as string)
    if (!isPasswordMatch) {
@@ -31,5 +57,7 @@ const resetPassword = async (oldPassword:string, newPassword:string, decodedToke
 
 export const authServices = {
   getNewAccessToken,
-  resetPassword
+  resetPassword,
+  setPassword,
+  changePassword
 };
