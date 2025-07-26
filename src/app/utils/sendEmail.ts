@@ -58,12 +58,12 @@ export const sendEmail = async ({
   }
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-transporter.verify(function (error, success) {
-  if (error) {
-    console.error("SMTP server verification failed:", error);
-    throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, "SMTP server verification failed");
-  } else {
-    console.log("SMTP server is ready to take messages");
-  }
-});
+
+// transporter.verify(function (error, success) {
+//   if (error) {
+//     console.error("SMTP server verification failed:", error);
+//     throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, "SMTP server verification failed");
+//   } else {
+//     console.log("SMTP server is ready to take messages");
+//   }
+// });

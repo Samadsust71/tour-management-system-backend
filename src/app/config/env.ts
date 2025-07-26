@@ -43,6 +43,11 @@ interface EnvConfig {
   SMTP_USER: string;
   SMTP_PASS: string;
   SMTP_FROM: string;
+  // Redis
+  REDIS_HOST: string;
+  REDIS_PORT: string;
+  REDIS_PASSWORD: string;
+  REDIS_USERNAME: string;
 }
 
 const isValidNodeEnv = (nodeEnv: string): nodeEnv is NodeEnvironment =>
@@ -87,6 +92,11 @@ const requiredEnvVariables: (keyof EnvConfig)[] = [
   "SMTP_USER",
   "SMTP_PASS",
   "SMTP_FROM",
+  // Redis
+  "REDIS_HOST",
+  "REDIS_PORT",
+  "REDIS_PASSWORD",
+  "REDIS_USERNAME"
 ];
 
 const loadEnvVariables = (): EnvConfig => {
