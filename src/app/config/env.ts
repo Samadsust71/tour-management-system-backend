@@ -43,6 +43,7 @@ interface EnvConfig {
   SMTP_USER: string;
   SMTP_PASS: string;
   SMTP_FROM: string;
+  SMTP_CONNECTION_TIMEOUT: string;
   // Redis
   REDIS_HOST: string;
   REDIS_PORT: string;
@@ -92,6 +93,8 @@ const requiredEnvVariables: (keyof EnvConfig)[] = [
   "SMTP_USER",
   "SMTP_PASS",
   "SMTP_FROM",
+  "SMTP_CONNECTION_TIMEOUT",
+
   // Redis
   "REDIS_HOST",
   "REDIS_PORT",
