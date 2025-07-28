@@ -35,6 +35,8 @@ const resetPassword = async (payload: Record<string, any>, decodedToken: JwtPayl
     if (!isUserExist.isVerified) {
         throw new AppError(401, "User is not verified")
     }
+    if(await bcrypt.compare(payload.newPassword, isUserExist.password as string)) {
+        throw new AppError(httpStatus.BAD_REQUEST, "New password cannot be the same as the old password")}
 
     const hashedPassword = await bcrypt.hash(
         payload.newPassword,

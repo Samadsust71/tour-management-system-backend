@@ -10,8 +10,6 @@ import cookieParser from "cookie-parser"
 import { envVars } from "./app/config/env"
 
 
-
-
 const app = express()
 
 app.use(expressSession({
@@ -21,10 +19,15 @@ app.use(expressSession({
 }))
 app.use(passport.initialize())
 app.use(passport.session())
+
 app.use(cookieParser())
-app.use(cors())
 app.use(express.json())
-// app.use(express.urlencoded({extended:true}))
+app.set("trust proxy", 1) 
+app.use(express.urlencoded({extended:true}))
+app.use(cors({
+      origin:envVars.FRONTEND_URL,
+      credentials:true
+}))
 
 app.use("/api/v1", router)
 app.get("/", (req:Request, res:Response)=>{

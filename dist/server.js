@@ -14,11 +14,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const app_1 = __importDefault(require("./app"));
+const env_1 = require("./app/config/env");
+const seedSuperAdmin_1 = require("./app/utils/seedSuperAdmin");
+const redis_config_1 = require("./app/config/redis.config");
 let server;
-const port = 5000;
+const port = env_1.envVars.PORT;
 const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield mongoose_1.default.connect("mongodb+srv://todouser:x7qUXaxOgtrhwWPG@cluster0.qo68l.mongodb.net/tour-management-system-db?retryWrites=true&w=majority&appName=Cluster0");
+        yield mongoose_1.default.connect(env_1.envVars.DB_URL);
         console.log("connected to DB");
         server = app_1.default.listen(port, () => {
             console.log(`Server is listening on port ${port}`);
@@ -28,7 +31,11 @@ const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
         console.log("Error on server connection", error);
     }
 });
-startServer();
+(() => __awaiter(void 0, void 0, void 0, function* () {
+    yield (0, redis_config_1.connectRedis)();
+    yield startServer();
+    yield (0, seedSuperAdmin_1.seedSuperAdmin)();
+}))();
 // for catching Unhandled promise error
 process.on("unhandledRejection", (err) => {
     console.log("Unhandled rejection detected....Server shutting down", err);
