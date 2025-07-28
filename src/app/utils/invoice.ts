@@ -86,20 +86,20 @@ export const generatePdf = async (
         .text(`Guest Count: ${invoiceData.guestCount}`, 60, boxTop + 50)
         .text(`Total Amount: ${invoiceData.totalAmount.toFixed(2)}Tk`, 60, boxTop + 70);
 
-      doc.moveDown(6);
+      doc.moveDown(4);
 
       // Footer Message
       doc
         .font("Helvetica-Oblique")
         .fontSize(12)
-        .fillColor("#333")
+        .fillColor("#000")
         .text("Thank you for booking with us!", {
           align: "center",
         });
 
       doc
         .fontSize(10)
-        .fillColor("gray")
+        .fillColor("blue")
         .text(
           "Tour Management System | www.tmsystem.com | samadsust7@gmail.com",
           {

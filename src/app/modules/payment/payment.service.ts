@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from "http-status-codes";
 import AppError from "../../errorHelpers/AppError";
-import { BOOKING_STATUS } from "../booking/booking.interface";
+import { BOOKING_STATUS, IBooking } from "../booking/booking.interface";
 import { Booking } from "../booking/booking.model";
 import { ISSLCommerz } from "../sslCommerz/sslCommerz.interface";
 import { SSLService } from "../sslCommerz/sslCommerz.service";
@@ -11,6 +11,8 @@ import { generatePdf, IInvoiceData } from "../../utils/invoice";
 import { ITour } from "../tour/tour.interface";
 import { IUser } from "../user/user.interface";
 import { sendEmail } from "../../utils/sendEmail";
+import { uploadBufferToCloudinary } from "../../config/cloudinary.config";
+import { Types } from "mongoose";
 
 const initPayment = async (bookingId: string) => {
   const payment = await Payment.findOne({ booking: bookingId });
@@ -83,26 +85,40 @@ const successPayment = async (query: Record<string, string>) => {
 
     const pdfBuffer = await generatePdf(invoiceData);
 
-     await sendEmail({
-            to: (updatedBooking.user as unknown as IUser).email,
-            subject: "Your Booking Invoice",
-            templateName: "invoice",
-            templateData: {
-            transactionId: invoiceData.transactionId,
-            bookingDate: invoiceData.bookingDate,
-            userName: invoiceData.userName,
-            tourTitle: invoiceData.tourTitle,
-            guestCount: invoiceData.guestCount,
-            totalAmount: invoiceData.totalAmount,
+    await sendEmail({
+      to: (updatedBooking.user as unknown as IUser).email,
+      subject: "Your Booking Invoice",
+      templateName: "invoice",
+      templateData: {
+        transactionId: invoiceData.transactionId,
+        bookingDate: invoiceData.bookingDate,
+        userName: invoiceData.userName,
+        tourTitle: invoiceData.tourTitle,
+        guestCount: invoiceData.guestCount,
+        totalAmount: invoiceData.totalAmount,
+      },
+      attachments: [
+        {
+          filename: "invoice.pdf",
+          content: pdfBuffer,
+          contentType: "application/pdf",
         },
-            attachments: [
-                {
-                    filename: "invoice.pdf",
-                    content: pdfBuffer,
-                    contentType: "application/pdf"
-                }
-            ]
-        })
+      ],
+    });
+    const cloudinaryResult = await uploadBufferToCloudinary(
+      pdfBuffer,
+      "invoice"
+    );
+
+    if (!cloudinaryResult) {
+      throw new AppError(401, "Error uploading pdf");
+    }
+
+    await Payment.findByIdAndUpdate(
+      updatedPayment._id,
+      { invoiceUrl: cloudinaryResult.secure_url },
+      { runValidators: true, session }
+    );
     await session.commitTransaction();
     session.endSession();
     return { success: true, message: "Payment Completed Successfully" };
@@ -169,9 +185,32 @@ const cancelPayment = async (query: Record<string, string>) => {
   }
 };
 
+const getInvoiceDownloadUrl = async (paymentId: string, userId:string) => {
+
+    const payment = await Payment.findById(paymentId)
+        .select("invoiceUrl booking")
+        .populate("booking","user",)
+    if (!payment) {
+        throw new AppError(httpStatus.NOT_FOUND, "Payment not found")
+    }
+
+    if (!payment.booking) {
+        throw new AppError(httpStatus.NOT_FOUND, "Booking not found")
+    }
+    if (((payment.booking as unknown as IBooking).user as Types.ObjectId).toString() !== userId) {
+        throw new AppError(httpStatus.FORBIDDEN, "You are not authorized to access this invoice")
+    }
+    if (!payment.invoiceUrl) {
+        throw new AppError(httpStatus.NOT_FOUND, "No invoice found")
+    }
+
+    return payment.invoiceUrl
+};
+
 export const paymentService = {
   initPayment,
   successPayment,
   failPayment,
   cancelPayment,
+  getInvoiceDownloadUrl
 };
