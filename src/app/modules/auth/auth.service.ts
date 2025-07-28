@@ -35,6 +35,8 @@ const resetPassword = async (payload: Record<string, any>, decodedToken: JwtPayl
     if (!isUserExist.isVerified) {
         throw new AppError(401, "User is not verified")
     }
+    if(await bcrypt.compare(payload.newPassword, isUserExist.password as string)) {
+        throw new AppError(httpStatus.BAD_REQUEST, "New password cannot be the same as the old password")}
 
     const hashedPassword = await bcrypt.hash(
         payload.newPassword,
@@ -105,7 +107,7 @@ const forgotPassword = async (email: string) => {
 
     const resetUILink = `${envVars.FRONTEND_URL}/reset-password?id=${isUserExist._id}&token=${resetToken}`
 
-     sendEmail({
+     await sendEmail({
         to: isUserExist.email,
         subject: "Password Reset",
         templateName: "forgetPassword",

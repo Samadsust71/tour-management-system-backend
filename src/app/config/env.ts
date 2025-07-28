@@ -32,6 +32,7 @@ interface EnvConfig {
   SSL_SUCCESS_FRONTEND_URL:string;
   SSL_FAIL_FRONTEND_URL:string;
   SSL_CANCEL_FRONTEND_URL:string;
+  SSL_IPN_URL:string;
   // CLOUDINARY
   CLOUDINARY_CLOUD_NAME: string;
   CLOUDINARY_API_KEY: string;
@@ -43,6 +44,12 @@ interface EnvConfig {
   SMTP_USER: string;
   SMTP_PASS: string;
   SMTP_FROM: string;
+  SMTP_CONNECTION_TIMEOUT: string;
+  // Redis
+  REDIS_HOST: string;
+  REDIS_PORT: string;
+  REDIS_PASSWORD: string;
+  REDIS_USERNAME: string;
 }
 
 const isValidNodeEnv = (nodeEnv: string): nodeEnv is NodeEnvironment =>
@@ -77,6 +84,8 @@ const requiredEnvVariables: (keyof EnvConfig)[] = [
   "SSL_SUCCESS_FRONTEND_URL",
   "SSL_FAIL_FRONTEND_URL",
   "SSL_CANCEL_FRONTEND_URL",
+  "SSL_IPN_URL",
+
   // CLOUDINARY
   "CLOUDINARY_CLOUD_NAME",
   "CLOUDINARY_API_KEY",
@@ -87,6 +96,13 @@ const requiredEnvVariables: (keyof EnvConfig)[] = [
   "SMTP_USER",
   "SMTP_PASS",
   "SMTP_FROM",
+  "SMTP_CONNECTION_TIMEOUT",
+
+  // Redis
+  "REDIS_HOST",
+  "REDIS_PORT",
+  "REDIS_PASSWORD",
+  "REDIS_USERNAME"
 ];
 
 const loadEnvVariables = (): EnvConfig => {

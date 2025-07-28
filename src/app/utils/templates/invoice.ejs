@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invoice - <%= transactionId %></title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9f9f9;
+      padding: 40px;
+      color: #333;
+    }
+
+    .invoice-container {
+      max-width: 700px;
+      margin: auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      font-size: 24px;
+      color: #2c3e50;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    p {
+      margin: 8px 0;
+    }
+
+    .label {
+      font-weight: bold;
+      color: #555;
+    }
+
+    .button {
+      display: inline-block;
+      margin-top: 20px;
+      background-color: #007BFF;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+
+    .button:hover {
+      background-color: #0056b3;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 12px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="invoice-container">
+    <h1>Invoice for Your Booking</h1>
+
+    <p><span class="label">Transaction ID:</span> <%= transactionId %></p>
+    <p><span class="label">Booking Date:</span> <%= bookingDate %></p>
+    <p><span class="label">Customer:</span> <%= userName %></p>
+    <p><span class="label">Tour Package:</span> <%= tourTitle %></p>
+    <p><span class="label">Guests:</span> <%= guestCount %></p>
+    <p><span class="label">Amount Paid:</span> <%= totalAmount.toFixed(2) %>tk</p>
+
+    <p>Thank you for booking with us. We look forward to providing you with an amazing experience!</p>
+
+    <div class="footer">
+      Tour Management System &mdash; www.tmsystem.com &mdash; samadsust71@gmail.com
+    </div>
+  </div>
+</body>
+</html>
